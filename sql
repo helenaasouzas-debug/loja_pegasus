@@ -183,7 +183,7 @@ INSERT INTO ENDERECO_ENTREGA (id_pedido, rua, cidade, cep) VALUES
 (9, 'Rua Lanterna, 12', 'Porto Alegre', '90000-000'),
 (10, 'Av. Atlântica, 500', 'Salvador', '40000-000'),
 (11, 'Rua das Chimichangas, 69', 'Fortaleza', '60000-000'),
-(12, 'Rua Hell`s Kitchen, 45', 'Recife', '50000-000'),
+(12, 'Rua Hells Kitchen, 45', 'Recife', '50000-000'),
 (13, 'Av. Arqueiro, 101', 'Brasília', '70000-000'),
 (14, 'Rua Estelar, 33', 'Goiânia', '74000-000'),
 (15, 'Rua Homem-Formiga, 12', 'Manaus', '69000-000'),
@@ -193,7 +193,7 @@ INSERT INTO ENDERECO_ENTREGA (id_pedido, rua, cidade, cep) VALUES
 (19, 'Rua dos Bobos, 0', 'São Paulo', '01000-000'),
 (20, 'Mansão Wayne, 100', 'Gotham City', '02000-000');
 
--- 3.7 Item Pedido (32 registros - Produtos 35 e 36 propositalmente sem vendas)
+-- 3.7 Item Pedido (32 registros - Produtos 35 e 36 sem vendas para testes)
 INSERT INTO ITEM_PEDIDO (id_pedido, id_produto, quantidade, preco_unitario) VALUES 
 (1, 1, 1, 34.90), (1, 20, 1, 250.00),
 (2, 16, 2, 49.90), (2, 26, 1, 79.90),
@@ -212,39 +212,63 @@ INSERT INTO ITEM_PEDIDO (id_pedido, id_produto, quantidade, preco_unitario) VALU
 (1, 11, 1, 34.90), (2, 12, 1, 34.90);
 
 -- ============================================================
--- 4. CONSULTAS OPERACIONAIS (PARTE 5 - 8 CONSULTAS)
+-- 4. VIEWS (PARTE 7)
 -- ============================================================
 
--- Consulta 1: Pesquisa com Filtros (WHERE, AND, OR, BETWEEN)
+CREATE VIEW vw_detalhes_produtos AS
+SELECT p.id_produto, p.nome AS produto, p.preco, p.url_imagem, c.nome AS categoria, f.nome_fantasia AS fornecedor,
+    CASE 
+        WHEN p.preco < 50.00 THEN 'Econômico'
+        WHEN p.preco BETWEEN 50.00 AND 150.00 THEN 'Intermediário'
+        ELSE 'Colecionável Premium'
+    END AS faixa_preco
+FROM PRODUTO p
+INNER JOIN CATEGORIA c ON p.id_categoria = c.id_categoria
+INNER JOIN FORNECEDOR f ON p.id_fornecedor = f.id_fornecedor;
+
+CREATE VIEW vw_desempenho_categorias AS
+SELECT c.nome AS categoria, COUNT(DISTINCT pr.id_produto) AS qtd_produtos_cadastrados,
+       COALESCE(SUM(ip.quantidade), 0) AS total_unidades_vendidas,
+       COALESCE(SUM(ip.quantidade * ip.preco_unitario), 0) AS faturamento_total
+FROM CATEGORIA c
+LEFT JOIN PRODUTO pr ON c.id_categoria = pr.id_categoria
+LEFT JOIN ITEM_PEDIDO ip ON pr.id_produto = ip.id_produto
+GROUP BY c.id_categoria, c.nome;
+
+-- ============================================================
+-- 5. CONSULTAS OPERACIONAIS (PARTE 5 - 8 CONSULTAS)
+-- ============================================================
+
+-- Consulta 1: Pesquisa com Filtros
 SELECT * FROM PRODUTO 
 WHERE preco BETWEEN 40.00 AND 200.00 AND (id_categoria = 2 OR id_categoria = 4);
 
--- Consulta 2: Pesquisa Textual (LIKE)
+-- Consulta 2: Pesquisa Textual
 SELECT id_produto, nome, preco FROM PRODUTO 
 WHERE nome LIKE '%One Piece%' OR nome LIKE '%Gojo%';
 
--- Consulta 3: Ordenação (ORDER BY em 2+ campos)
+-- Consulta 3: Ordenação
 SELECT id_produto, nome, id_categoria, preco FROM PRODUTO 
 ORDER BY id_categoria ASC, preco DESC;
 
--- Consulta 4: Relacionamento Simples (INNER JOIN entre 2 tabelas)
+-- Consulta 4: Relacionamento Simples (INNER JOIN 2 tabelas)
 SELECT p.nome AS produto, p.preco, c.nome AS categoria 
 FROM PRODUTO p
 INNER JOIN CATEGORIA c ON p.id_categoria = c.id_categoria;
 
--- Consulta 5: Relacionamento Intermediário (INNER JOIN entre 3 tabelas)
+-- Consulta 5: Relacionamento Intermediário (INNER JOIN 3 tabelas)
 SELECT p.nome AS produto, c.nome AS categoria, f.nome_fantasia AS fornecedor
 FROM PRODUTO p
 INNER JOIN CATEGORIA c ON p.id_categoria = c.id_categoria
 INNER JOIN FORNECEDOR f ON p.id_fornecedor = f.id_fornecedor;
 
--- Consulta 6: Registros sem Relacionamento (LEFT JOIN - Clientes sem Pedidos)
+-- Consulta 6: Registros sem Relacionamento (LEFT JOIN)
 SELECT c.id_cliente, c.nome, c.email 
 FROM CLIENTE c
 LEFT JOIN PEDIDO p ON c.id_cliente = p.id_cliente
 WHERE p.id_pedido IS NULL;
 
--- Consulta 7: Estatísticas por Grupo (GROUP BY, HAVING, COUNT, SUM, AVG)
+-- Consulta 7: Estatísticas por Grupo
 SELECT c.nome AS categoria, COUNT(p.id_produto) AS total_produtos, AVG(p.preco) AS preco_medio
 FROM PRODUTO p
 INNER JOIN CATEGORIA c ON p.id_categoria = c.id_categoria
@@ -261,36 +285,10 @@ SELECT nome, preco,
 FROM PRODUTO;
 
 -- ============================================================
--- 5. VIEWS (PARTE 7 - 2 VIEWS)
--- ============================================================
-
--- View Operacional (mínimo 3 tabelas com JOIN)
-CREATE VIEW vw_detalhes_produtos AS
-SELECT p.id_produto, p.nome AS produto, p.preco, p.url_imagem, c.nome AS categoria, f.nome_fantasia AS fornecedor,
-    CASE 
-        WHEN p.preco < 50.00 THEN 'Econômico'
-        WHEN p.preco BETWEEN 50.00 AND 150.00 THEN 'Intermediário'
-        ELSE 'Colecionável Premium'
-    END AS faixa_preco
-FROM PRODUTO p
-INNER JOIN CATEGORIA c ON p.id_categoria = c.id_categoria
-INNER JOIN FORNECEDOR f ON p.id_fornecedor = f.id_fornecedor;
-
--- View Gerencial (mínimo 3 tabelas com GROUP BY e agregação)
-CREATE VIEW vw_desempenho_categorias AS
-SELECT c.nome AS categoria, COUNT(DISTINCT pr.id_produto) AS qtd_produtos_cadastrados,
-       COALESCE(SUM(ip.quantidade), 0) AS total_unidades_vendidas,
-       COALESCE(SUM(ip.quantidade * ip.preco_unitario), 0) AS faturamento_total
-FROM CATEGORIA c
-LEFT JOIN PRODUTO pr ON c.id_categoria = pr.id_categoria
-LEFT JOIN ITEM_PEDIDO ip ON pr.id_produto = ip.id_produto
-GROUP BY c.id_categoria, c.nome;
-
--- ============================================================
 -- 6. CONSULTAS GERENCIAIS (PARTE 6 - 9 CONSULTAS)
 -- ============================================================
 
--- Consulta 1: Ranking Principal (Top 5 Clientes que mais compraram)
+-- Consulta 1: Ranking Principal
 SELECT c.nome, COUNT(p.id_pedido) AS total_pedidos
 FROM CLIENTE c
 INNER JOIN PEDIDO p ON c.id_cliente = p.id_cliente
@@ -298,26 +296,26 @@ GROUP BY c.id_cliente, c.nome
 ORDER BY total_pedidos DESC
 LIMIT 5;
 
--- Consulta 2: Indicador Financeiro (Faturamento por Categoria)
+-- Consulta 2: Indicador Financeiro
 SELECT c.nome AS categoria, SUM(ip.quantidade * ip.preco_unitario) AS faturamento_total
 FROM ITEM_PEDIDO ip
 INNER JOIN PRODUTO pr ON ip.id_produto = pr.id_produto
 INNER JOIN CATEGORIA c ON pr.id_categoria = c.id_categoria
 GROUP BY c.id_categoria, c.nome;
 
--- Consulta 3: Registros Acima da Média (Produtos com preço acima da média geral)
+-- Consulta 3: Registros Acima da Média
 SELECT nome, preco FROM PRODUTO
 WHERE preco > (SELECT AVG(preco) FROM PRODUTO)
 ORDER BY preco DESC;
 
--- Consulta 4: Relatório Integrado (4 Tabelas: Cliente, Pedido, Item, Produto)
+-- Consulta 4: Relatório Integrado (4 Tabelas)
 SELECT c.nome AS cliente, p.id_pedido, p.data_pedido, pr.nome AS produto, ip.quantidade, ip.preco_unitario
 FROM CLIENTE c
 INNER JOIN PEDIDO p ON c.id_cliente = p.id_cliente
 INNER JOIN ITEM_PEDIDO ip ON p.id_pedido = ip.id_pedido
 INNER JOIN PRODUTO pr ON ip.id_produto = pr.id_produto;
 
--- Consulta 5: Relatório Integrado Avançado (5 Tabelas: Cliente, Pedido, Item, Produto, Categoria)
+-- Consulta 5: Relatório Integrado Avançado (5 Tabelas)
 SELECT c.nome AS cliente, p.id_pedido, cat.nome AS categoria, pr.nome AS produto, (ip.quantidade * ip.preco_unitario) AS total_item
 FROM CLIENTE c
 INNER JOIN PEDIDO p ON c.id_cliente = p.id_cliente
@@ -326,13 +324,13 @@ INNER JOIN PRODUTO pr ON ip.id_produto = pr.id_produto
 INNER JOIN CATEGORIA cat ON pr.id_categoria = cat.id_categoria
 ORDER BY p.data_pedido DESC;
 
--- Consulta 6: Identificação de Problemas (Produtos cadastrados sem NENHUMA venda)
+-- Consulta 6: Identificação de Problemas (Produtos sem venda)
 SELECT pr.id_produto, pr.nome, pr.preco 
 FROM PRODUTO pr
 LEFT JOIN ITEM_PEDIDO ip ON pr.id_produto = ip.id_produto
 WHERE ip.id_produto IS NULL;
 
--- Consulta 7: Dashboard Executivo (COUNT, SUM, AVG, MAX, MIN em uma única consulta)
+-- Consulta 7: Dashboard Executivo
 SELECT 
     COUNT(DISTINCT id_pedido) AS total_pedidos_realizados,
     SUM(quantidade * preco_unitario) AS faturamento_geral,
@@ -341,7 +339,7 @@ SELECT
     MIN(preco_unitario) AS item_mais_barato_vendido
 FROM ITEM_PEDIDO;
 
--- Consulta 8: Consulta Complexa (JOIN + GROUP BY + HAVING + Subconsulta)
+-- Consulta 8: Consulta Complexa
 SELECT cat.nome AS categoria, SUM(ip.quantidade * ip.preco_unitario) AS faturamento
 FROM ITEM_PEDIDO ip
 INNER JOIN PRODUTO pr ON ip.id_produto = pr.id_produto
@@ -356,7 +354,7 @@ HAVING faturamento > (
     ) sub
 );
 
--- Consulta 9: Consulta Utilizando View
+-- Consulta 9: Consulta na View
 SELECT * FROM vw_detalhes_produtos WHERE faixa_preco = 'Colecionável Premium';
 
 -- ============================================================
@@ -387,7 +385,6 @@ BEGIN
 END //
 DELIMITER ;
 
--- Teste da Procedure
 CALL sp_relatorio_vendas_cliente(1);
 
 -- ============================================================
@@ -403,7 +400,6 @@ BEGIN
 END //
 DELIMITER ;
 
--- Teste da Function
 SELECT nome, preco, fn_calcular_desconto(preco, 10.00) AS preco_com_10_desconto 
 FROM PRODUTO WHERE id_categoria = 3;
 
