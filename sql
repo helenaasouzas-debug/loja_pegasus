@@ -1,142 +1,10 @@
--- 1. CRIAÇÃO E SELEÇÃO DO BANCO DE DADOS
-CREATE DATABASE IF NOT EXISTS loja_geek;
-USE loja_geek;
-
-
 -- ============================================================
--- 2. ESTRUTURA FÍSICA (PARTE 3 - CREATE TABLE)
--- Incluir PK, FK, UNIQUE, NOT NULL para as 7 tabelas
--- ============================================================
-
-
-CREATE TABLE CATEGORIA (
-id_categoria INT PRIMARY KEY AUTO_INCREMENT,
-nome VARCHAR(50) NOT NULL UNIQUE
-);
-
-
-CREATE TABLE FORNECEDOR (
-id_fornecedor INT PRIMARY KEY AUTO_INCREMENT,
-nome_fantasia VARCHAR(100) NOT NULL,
-cnpj VARCHAR(18) NOT NULL UNIQUE
-);
-
-
-CREATE TABLE CLIENTE (
-id_cliente INT PRIMARY KEY AUTO_INCREMENT,
-nome VARCHAR(100) NOT NULL,
-email VARCHAR(100) NOT NULL UNIQUE,
-cpf VARCHAR(14) NOT NULL UNIQUE
-);
-
-
-CREATE TABLE PRODUTO (
-id_produto INT PRIMARY KEY AUTO_INCREMENT,
-nome VARCHAR(100) NOT NULL,
-preco DECIMAL(10,2) NOT NULL,
-id_categoria INT NOT NULL,
-id_fornecedor INT NOT NULL,
-FOREIGN KEY (id_categoria) REFERENCES CATEGORIA(id_categoria),
-FOREIGN KEY (id_fornecedor) REFERENCES FORNECEDOR(id_fornecedor)
-);
-
-
-CREATE TABLE PEDIDO (
-id_pedido INT PRIMARY KEY AUTO_INCREMENT,
-data_pedido DATETIME NOT NULL,
-id_cliente INT NOT NULL,
-FOREIGN KEY (id_cliente) REFERENCES CLIENTE(id_cliente)
-);
-
-
--- Entidade Fraca (Depende de PEDIDO)
-CREATE TABLE ENDERECO_ENTREGA (
-id_endereco INT PRIMARY KEY AUTO_INCREMENT,
-id_pedido INT NOT NULL UNIQUE,
-rua VARCHAR(100) NOT NULL,
-cidade VARCHAR(50) NOT NULL,
-cep VARCHAR(10) NOT NULL,
-FOREIGN KEY (id_pedido) REFERENCES PEDIDO(id_pedido)
-);
-
-
--- Entidade Associativa (N:N entre PEDIDO e PRODUTO)
-CREATE TABLE ITEM_PEDIDO (
-id_pedido INT NOT NULL,
-id_produto INT NOT NULL,
-quantidade INT NOT NULL,
-preco_unitario DECIMAL(10,2) NOT NULL,
-PRIMARY KEY (id_pedido, id_produto),
-FOREIGN KEY (id_pedido) REFERENCES PEDIDO(id_pedido),
-FOREIGN KEY (id_produto) REFERENCES PRODUTO(id_produto)
-);
-
-
--- ============================================================
--- 3. CARGA INICIAL DE DADOS (PARTE 4 - INSERT INTO)
--- Respeitar as quantidades mínimas de registros solicitadas
--- ============================================================
-
-
--- Exemplo para Categoria (mínimo 15)
-INSERT INTO CATEGORIA (nome) VALUES
-('Action Figures'), ('Mangás'), ('HQs'), ('Camisetas'), ('Colecionáveis');
-
-
--- Exemplo para Cliente (mínimo 20)
--- Lembrar de criar 2 clientes sem pedidos para testar LEFT JOIN/NOT EXISTS
-INSERT INTO CLIENTE (nome, email, cpf) VALUES
-('Peter Parker', 'peter@dailybugle.com', '111.111.111-11'),
-('Bruce Wayne', 'bruce@wayne.com', '222.222.222-22'),
-('Cliente Sem Compras 1', 'semcompras1@email.com', '999.999.999-91'),
-('Cliente Sem Compras 2', 'semcompras2@email.com', '999.999.999-92');
-
-
--- (Continuar com os INSERTS dos demais registros...)
-
-
--- ============================================================
--- 4. CONSULTAS OPERACIONAIS (PARTE 5 - 8 CONSULTAS)
--- ============================================================
-
-
--- Consulta 1 - Pesquisa com Filtros
-SELECT * FROM PRODUTO WHERE preco BETWEEN 50 AND 200 AND id_categoria = 1;
-
-
--- Consulta 2 - Pesquisa Textual
-SELECT * FROM PRODUTO WHERE nome LIKE '%Funko%';
-
-
--- (Incluir as Consultas 3 a 8...)
-
-
--- ============================================================
--- 5. CONSULTAS GERENCIAIS (PARTE 6 - 9 CONSULTAS)
--- ============================================================
-
-
--- Consulta 1 - Ranking Principal (Clientes que mais compraram)
-SELECT c.nome, COUNT(p.id_pedido) AS total_pedidos
-FROM CLIENTE c
-JOIN PEDIDO p ON c.id_cliente = p.id_cliente
-GROUP BY c.id_cliente
-ORDER BY total_pedidos DESC
-LIMIT 5;
--- (Incluir as Consultas 2 a 9...)
-
-
-Thoughts
-Aqui está o script SQL completo e ajustado para a Loja Geek Pegasus.
-Ele inclui a coluna url_imagem na tabela de produtos (para você colocar os caminhos/links das imagens das fontes depois), insere todos os 36 produtos que você especificou, expande a carga inicial para atingir os mínimos exigidos pelo trabalho
- e completa todas as consultas operacionais, gerenciais, views, índices, procedure, function e permissões de segurança.
--- ============================================================
--- TRABALHO FINAL - BANCO DE DADOS RELACIONAL: LOJA GEEK PEGASUS
+-- TRABALHO FINAL - BANCO DE DADOS RELACIONAL: LOJA PEGASUS
 -- ============================================================
 
 -- 1. CRIAÇÃO E SELEÇÃO DO BANCO DE DADOS
-CREATE DATABASE IF NOT EXISTS loja_geek;
-USE loja_geek;
+CREATE DATABASE IF NOT EXISTS loja_pegasus;
+USE loja_pegasus;
 
 -- ============================================================
 -- 2. ESTRUTURA FÍSICA (TABELAS COM PK, FK, UNIQUE E NOT NULL)
@@ -164,7 +32,7 @@ CREATE TABLE PRODUTO (
     id_produto INT PRIMARY KEY AUTO_INCREMENT,
     nome VARCHAR(100) NOT NULL,
     preco DECIMAL(10,2) NOT NULL,
-    url_imagem VARCHAR(255) DEFAULT 'imagens/placeholder.png', -- Espaço reservado para as imagens
+    url_imagem VARCHAR(255) DEFAULT 'img/placeholder.png',
     id_categoria INT NOT NULL,
     id_fornecedor INT NOT NULL,
     FOREIGN KEY (id_categoria) REFERENCES CATEGORIA(id_categoria),
@@ -178,7 +46,7 @@ CREATE TABLE PEDIDO (
     FOREIGN KEY (id_cliente) REFERENCES CLIENTE(id_cliente)
 );
 
--- Entidade Fraca (Relacionamento 1:1 obrigatório com PEDIDO)
+-- Entidade Fraca (Relacionamento 1:1 com PEDIDO)
 CREATE TABLE ENDERECO_ENTREGA (
     id_endereco INT PRIMARY KEY AUTO_INCREMENT,
     id_pedido INT NOT NULL UNIQUE,
@@ -203,7 +71,7 @@ CREATE TABLE ITEM_PEDIDO (
 -- 3. CARGA INICIAL DE DADOS (POPULANDO O BANCO)
 -- ============================================================
 
--- 3.1 Categoria (15 registros para atender à exigência secundária)
+-- 3.1 Categoria (15 registros)
 INSERT INTO CATEGORIA (nome) VALUES 
 ('Mangás'), ('HQs & Quadrinhos'), ('Action Figures'), ('Camisetas'), ('Canecas'),
 ('Colecionáveis Premium'), ('Posteres & Quadros'), ('Jogos de Tabuleiro'), ('Card Games'), ('Chaveiros'),
@@ -227,7 +95,7 @@ INSERT INTO FORNECEDOR (nome_fantasia, cnpj) VALUES
 ('Hasbro Brasil Colecionáveis', '15.151.515/0001-15'),
 ('McFarlane Toys Brasil', '16.161.616/0001-16');
 
--- 3.3 Cliente (20 registros - Clientes 19 e 20 propositalmente sem compras)
+-- 3.3 Cliente (20 registros - Clientes 19 e 20 sem pedidos para testes de auditoria)
 INSERT INTO CLIENTE (nome, email, cpf) VALUES 
 ('Peter Parker', 'peter@dailybugle.com', '111.111.111-11'),
 ('Bruce Wayne', 'bruce@wayne.com', '222.222.222-22'),
@@ -250,9 +118,8 @@ INSERT INTO CLIENTE (nome, email, cpf) VALUES
 ('Cliente Sem Compras 1', 'semcompras1@email.com', '999.999.999-91'),
 ('Cliente Sem Compras 2', 'semcompras2@email.com', '999.999.999-92');
 
--- 3.4 Produto (36 registros especificados pela loja Pegasus)
+-- 3.4 Produto (36 registros da Loja Pegasus com caminhos de imagem)
 INSERT INTO PRODUTO (nome, preco, url_imagem, id_categoria, id_fornecedor) VALUES 
--- Mangás One Piece Vol. 1 ao 15 (Categoria 1, Fornecedor 1 - Panini)
 ('Mangá One Piece Volume 01', 34.90, 'img/mangas/one_piece_vol_01.jpg', 1, 1),
 ('Mangá One Piece Volume 02', 34.90, 'img/mangas/one_piece_vol_02.jpg', 1, 1),
 ('Mangá One Piece Volume 03', 34.90, 'img/mangas/one_piece_vol_03.jpg', 1, 1),
@@ -268,34 +135,29 @@ INSERT INTO PRODUTO (nome, preco, url_imagem, id_categoria, id_fornecedor) VALUE
 ('Mangá One Piece Volume 13', 34.90, 'img/mangas/one_piece_vol_13.jpg', 1, 1),
 ('Mangá One Piece Volume 14', 34.90, 'img/mangas/one_piece_vol_14.jpg', 1, 1),
 ('Mangá One Piece Volume 15', 34.90, 'img/mangas/one_piece_vol_15.jpg', 1, 1),
--- HQs (Categoria 2, Fornecedor 1 - Panini)
 ('HQ Homem-Aranha Volume 01', 49.90, 'img/hqs/spiderman_vol_01.jpg', 2, 1),
 ('HQ Homem-Aranha Volume 02', 49.90, 'img/hqs/spiderman_vol_02.jpg', 2, 1),
 ('HQ Batman Volume 01', 54.90, 'img/hqs/batman_vol_01.jpg', 2, 1),
 ('HQ Batman Volume 02', 54.90, 'img/hqs/batman_vol_02.jpg', 2, 1),
--- Action Figures (Categoria 3, Fornecedor 3 - Bandai)
 ('Figure Roronoa Zoro 15cm', 250.00, 'img/figures/zoro_15cm.jpg', 3, 3),
 ('Figure Monkey D. Luffy 15cm', 250.00, 'img/figures/luffy_15cm.jpg', 3, 3),
 ('Figure Nami 15cm', 240.00, 'img/figures/nami_15cm.jpg', 3, 3),
 ('Figure Tony Tony Chopper 10cm', 180.00, 'img/figures/chopper_10cm.jpg', 3, 3),
 ('Figure Sanji 15cm', 245.00, 'img/figures/sanji_15cm.jpg', 3, 3),
 ('Figure Usopp 15cm', 235.00, 'img/figures/usopp_15cm.jpg', 3, 3),
--- Camisetas (Categoria 4, Fornecedor 5 - Piticas)
 ('Camiseta Gojo (Tamanho P)', 79.90, 'img/camisetas/gojo_p.jpg', 4, 5),
 ('Camiseta Gojo (Tamanho M)', 79.90, 'img/camisetas/gojo_m.jpg', 4, 5),
 ('Camiseta Sukuna (Tamanho P)', 79.90, 'img/camisetas/sukuna_p.jpg', 4, 5),
 ('Camiseta Sukuna (Tamanho G)', 79.90, 'img/camisetas/sukuna_g.jpg', 4, 5),
 ('Camiseta Ichigo (Tamanho M)', 79.90, 'img/camisetas/ichigo_m.jpg', 4, 5),
 ('Camiseta Ichigo (Tamanho G)', 79.90, 'img/camisetas/ichigo_g.jpg', 4, 5),
--- Canecas (Categoria 5, Fornecedor 6 - Canecas & Cia)
 ('Caneca Marvel Comics', 45.00, 'img/canecas/marvel.jpg', 5, 6),
 ('Caneca DC Comics', 45.00, 'img/canecas/dc.jpg', 5, 6),
 ('Caneca Attack on Titan', 49.90, 'img/canecas/aot.jpg', 5, 6),
--- Produtos 35 e 36 propositalmente sem vendas
 ('Caneca Star Wars Saga', 49.90, 'img/canecas/star_wars.jpg', 5, 6),
 ('Caneca Banguela (Como Treinar o Seu Dragão)', 52.00, 'img/canecas/banguela.jpg', 5, 6);
 
--- 3.5 Pedido (20 pedidos para atender ao mínimo exigido)
+-- 3.5 Pedido (20 registros)
 INSERT INTO PEDIDO (data_pedido, id_cliente) VALUES 
 ('2026-10-01 10:30:00', 1), ('2026-10-02 11:15:00', 2), ('2026-10-03 14:20:00', 3),
 ('2026-10-04 16:45:00', 4), ('2026-10-05 09:10:00', 5), ('2026-10-06 18:00:00', 6),
@@ -305,7 +167,7 @@ INSERT INTO PEDIDO (data_pedido, id_cliente) VALUES
 ('2026-10-16 10:45:00', 16), ('2026-10-17 15:00:00', 17), ('2026-10-18 18:30:00', 18),
 ('2026-10-19 11:00:00', 1),  ('2026-10-20 14:30:00', 2);
 
--- 3.6 Endereço de Entrega (20 registros - Entidade Fraca)
+-- 3.6 Endereço de Entrega (20 registros)
 INSERT INTO ENDERECO_ENTREGA (id_pedido, rua, cidade, cep) VALUES 
 (1, 'Rua dos Bobos, 0', 'São Paulo', '01000-000'),
 (2, 'Mansão Wayne, 100', 'Gotham City', '02000-000'),
@@ -328,7 +190,7 @@ INSERT INTO ENDERECO_ENTREGA (id_pedido, rua, cidade, cep) VALUES
 (19, 'Rua dos Bobos, 0', 'São Paulo', '01000-000'),
 (20, 'Mansão Wayne, 100', 'Gotham City', '02000-000');
 
--- 3.7 Item Pedido (32 registros na Entidade Associativa)
+-- 3.7 Item Pedido (32 registros - Produtos 35 e 36 propositalmente sem vendas)
 INSERT INTO ITEM_PEDIDO (id_pedido, id_produto, quantidade, preco_unitario) VALUES 
 (1, 1, 1, 34.90), (1, 20, 1, 250.00),
 (2, 16, 2, 49.90), (2, 26, 1, 79.90),
@@ -373,7 +235,7 @@ FROM PRODUTO p
 INNER JOIN CATEGORIA c ON p.id_categoria = c.id_categoria
 INNER JOIN FORNECEDOR f ON p.id_fornecedor = f.id_fornecedor;
 
--- Consulta 6: Registros sem Relacionamento (LEFT JOIN para Clientes sem Pedidos)
+-- Consulta 6: Registros sem Relacionamento (LEFT JOIN - Clientes sem Pedidos)
 SELECT c.id_cliente, c.nome, c.email 
 FROM CLIENTE c
 LEFT JOIN PEDIDO p ON c.id_cliente = p.id_cliente
@@ -383,20 +245,46 @@ WHERE p.id_pedido IS NULL;
 SELECT c.nome AS categoria, COUNT(p.id_produto) AS total_produtos, AVG(p.preco) AS preco_medio
 FROM PRODUTO p
 INNER JOIN CATEGORIA c ON p.id_categoria = c.id_categoria
-GROUP BY c.id_categoria
+GROUP BY c.id_categoria, c.nome
 HAVING AVG(p.preco) > 50.00;
 
 -- Consulta 8: Classificação de Dados (CASE)
 SELECT nome, preco,
     CASE 
-        WHEN preco < 50.00 THEN 'Econômico / Básico'
+        WHEN preco < 50.00 THEN 'Econômico'
         WHEN preco BETWEEN 50.00 AND 150.00 THEN 'Intermediário'
         ELSE 'Colecionável Premium'
     END AS faixa_categoria
 FROM PRODUTO;
 
 -- ============================================================
--- 5. CONSULTAS GERENCIAIS (PARTE 6 - 9 CONSULTAS)
+-- 5. VIEWS (PARTE 7 - 2 VIEWS)
+-- ============================================================
+
+-- View Operacional (mínimo 3 tabelas com JOIN)
+CREATE VIEW vw_detalhes_produtos AS
+SELECT p.id_produto, p.nome AS produto, p.preco, p.url_imagem, c.nome AS categoria, f.nome_fantasia AS fornecedor,
+    CASE 
+        WHEN p.preco < 50.00 THEN 'Econômico'
+        WHEN p.preco BETWEEN 50.00 AND 150.00 THEN 'Intermediário'
+        ELSE 'Colecionável Premium'
+    END AS faixa_preco
+FROM PRODUTO p
+INNER JOIN CATEGORIA c ON p.id_categoria = c.id_categoria
+INNER JOIN FORNECEDOR f ON p.id_fornecedor = f.id_fornecedor;
+
+-- View Gerencial (mínimo 3 tabelas com GROUP BY e agregação)
+CREATE VIEW vw_desempenho_categorias AS
+SELECT c.nome AS categoria, COUNT(DISTINCT pr.id_produto) AS qtd_produtos_cadastrados,
+       COALESCE(SUM(ip.quantidade), 0) AS total_unidades_vendidas,
+       COALESCE(SUM(ip.quantidade * ip.preco_unitario), 0) AS faturamento_total
+FROM CATEGORIA c
+LEFT JOIN PRODUTO pr ON c.id_categoria = pr.id_categoria
+LEFT JOIN ITEM_PEDIDO ip ON pr.id_produto = ip.id_produto
+GROUP BY c.id_categoria, c.nome;
+
+-- ============================================================
+-- 6. CONSULTAS GERENCIAIS (PARTE 6 - 9 CONSULTAS)
 -- ============================================================
 
 -- Consulta 1: Ranking Principal (Top 5 Clientes que mais compraram)
@@ -441,7 +329,7 @@ FROM PRODUTO pr
 LEFT JOIN ITEM_PEDIDO ip ON pr.id_produto = ip.id_produto
 WHERE ip.id_produto IS NULL;
 
--- Consulta 7: Dashboard Executivo (COUNT, SUM, AVG, MAX, MIN numa só consulta)
+-- Consulta 7: Dashboard Executivo (COUNT, SUM, AVG, MAX, MIN em uma única consulta)
 SELECT 
     COUNT(DISTINCT id_pedido) AS total_pedidos_realizados,
     SUM(quantidade * preco_unitario) AS faturamento_geral,
@@ -467,32 +355,6 @@ HAVING faturamento > (
 
 -- Consulta 9: Consulta Utilizando View
 SELECT * FROM vw_detalhes_produtos WHERE faixa_preco = 'Colecionável Premium';
-
--- ============================================================
--- 6. VIEWS (PARTE 7)
--- ============================================================
-
--- View Operacional (mínimo 3 tabelas com JOIN)
-CREATE VIEW vw_detalhes_produtos AS
-SELECT p.id_produto, p.nome AS produto, p.preco, p.url_imagem, c.nome AS categoria, f.nome_fantasia AS fornecedor,
-    CASE 
-        WHEN p.preco < 50.00 THEN 'Econômico'
-        WHEN p.preco BETWEEN 50.00 AND 150.00 THEN 'Intermediário'
-        ELSE 'Colecionável Premium'
-    END AS faixa_preco
-FROM PRODUTO p
-INNER JOIN CATEGORIA c ON p.id_categoria = c.id_categoria
-INNER JOIN FORNECEDOR f ON p.id_fornecedor = f.id_fornecedor;
-
--- View Gerencial (mínimo 3 tabelas com GROUP BY e agregação)
-CREATE VIEW vw_desempenho_categorias AS
-SELECT c.nome AS categoria, COUNT(DISTINCT pr.id_produto) AS qtd_produtos_cadastrados,
-       COALESCE(SUM(ip.quantidade), 0) AS total_unidades_vendidas,
-       COALESCE(SUM(ip.quantidade * ip.preco_unitario), 0) AS faturamento_total
-FROM CATEGORIA c
-LEFT JOIN PRODUTO pr ON c.id_categoria = pr.id_categoria
-LEFT JOIN ITEM_PEDIDO ip ON pr.id_produto = ip.id_produto
-GROUP BY c.id_categoria, c.nome;
 
 -- ============================================================
 -- 7. ÍNDICES (PARTE 8)
@@ -522,7 +384,7 @@ BEGIN
 END //
 DELIMITER ;
 
--- Execução da Procedure para o Cliente id = 1
+-- Teste da Procedure
 CALL sp_relatorio_vendas_cliente(1);
 
 -- ============================================================
@@ -546,24 +408,15 @@ FROM PRODUTO WHERE id_categoria = 3;
 -- 10. SEGURANÇA E CONTROLE DE ACESSO (PARTE 11 E 12)
 -- ============================================================
 
--- 10.1 Criação dos Usuários
 CREATE USER IF NOT EXISTS 'usuario_consulta'@'localhost' IDENTIFIED BY 'Senha123!';
 CREATE USER IF NOT EXISTS 'usuario_operador'@'localhost' IDENTIFIED BY 'Senha123!';
 CREATE USER IF NOT EXISTS 'usuario_gerente'@'localhost' IDENTIFIED BY 'Senha123!';
 CREATE USER IF NOT EXISTS 'usuario_administrador'@'localhost' IDENTIFIED BY 'SenhaAdmin123!';
 
--- 10.2 Concessão de Permissões
--- Usuário Consulta: Apenas leitura (SELECT)
-GRANT SELECT ON loja_geek.* TO 'usuario_consulta'@'localhost';
-
--- Usuário Operador: Leitura, Inserção e Atualização (SELECT, INSERT, UPDATE) - Sem DELETE
-GRANT SELECT, INSERT, UPDATE ON loja_geek.* TO 'usuario_operador'@'localhost';
-
--- Usuário Gerente: Permissão apenas de leitura nas Views
-GRANT SELECT ON loja_geek.vw_detalhes_produtos TO 'usuario_gerente'@'localhost';
-GRANT SELECT ON loja_geek.vw_desempenho_categorias TO 'usuario_gerente'@'localhost';
-
--- Usuário Administrador: Acesso Total
-GRANT ALL PRIVILEGES ON loja_geek.* TO 'usuario_administrador'@'localhost';
+GRANT SELECT ON loja_pegasus.* TO 'usuario_consulta'@'localhost';
+GRANT SELECT, INSERT, UPDATE ON loja_pegasus.* TO 'usuario_operador'@'localhost';
+GRANT SELECT ON loja_pegasus.vw_detalhes_produtos TO 'usuario_gerente'@'localhost';
+GRANT SELECT ON loja_pegasus.vw_desempenho_categorias TO 'usuario_gerente'@'localhost';
+GRANT ALL PRIVILEGES ON loja_pegasus.* TO 'usuario_administrador'@'localhost';
 
 FLUSH PRIVILEGES;
