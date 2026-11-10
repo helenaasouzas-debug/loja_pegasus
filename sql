@@ -1,6 +1,5 @@
--- ============================================================
+
 -- TRABALHO FINAL - BANCO DE DADOS RELACIONAL: LOJA PEGASUS
--- ============================================================
 
 DROP DATABASE IF EXISTS loja_pegasus;
 CREATE DATABASE loja_pegasus;
@@ -8,9 +7,7 @@ USE loja_pegasus;
 
 SET FOREIGN_KEY_CHECKS = 0;
 
--- ============================================================
 -- 1. ESTRUTURA FÍSICA (TABELAS)
--- ============================================================
 
 CREATE TABLE CATEGORIA (
     id_categoria INT PRIMARY KEY AUTO_INCREMENT,
@@ -69,17 +66,15 @@ CREATE TABLE ITEM_PEDIDO (
 
 SET FOREIGN_KEY_CHECKS = 1;
 
--- ============================================================
 -- 2. CARGA INICIAL DE DADOS (INSERTS)
--- ============================================================
 
--- Categorias (15 registros)
+
 INSERT INTO CATEGORIA (nome) VALUES 
 ('Mangás'), ('HQs & Quadrinhos'), ('Action Figures'), ('Camisetas'), ('Canecas'),
 ('Colecionáveis Premium'), ('Posteres & Quadros'), ('Jogos de Tabuleiro'), ('Card Games'), ('Chaveiros'),
 ('Pelúcias'), ('Acessórios Geek'), ('Estátuas'), ('Funko Pop'), ('Light Novels');
 
--- Fornecedores (15 registros)
+
 INSERT INTO FORNECEDOR (nome_fantasia, cnpj) VALUES 
 ('Panini Comics Brasil', '11.111.111/0001-11'),
 ('Editora JBC', '22.222.222/0001-22'),
@@ -97,7 +92,7 @@ INSERT INTO FORNECEDOR (nome_fantasia, cnpj) VALUES
 ('Hasbro Brasil Colecionáveis', '15.151.515/0001-15'),
 ('McFarlane Toys Brasil', '16.161.616/0001-16');
 
--- Clientes (20 registros)
+
 INSERT INTO CLIENTE (nome, email, cpf) VALUES 
 ('Peter Parker', 'peter@dailybugle.com', '111.111.111-11'),
 ('Bruce Wayne', 'bruce@wayne.com', '222.222.222-22'),
@@ -120,7 +115,7 @@ INSERT INTO CLIENTE (nome, email, cpf) VALUES
 ('Cliente Sem Compras 1', 'semcompras1@email.com', '999.999.999-91'),
 ('Cliente Sem Compras 2', 'semcompras2@email.com', '999.999.999-92');
 
--- Produtos (36 registros da Loja Pegasus)
+
 INSERT INTO PRODUTO (nome, preco, url_imagem, id_categoria, id_fornecedor) VALUES 
 ('Mangá One Piece Volume 01', 34.90, 'img/mangas/one_piece_vol_01.jpg', 1, 1),
 ('Mangá One Piece Volume 02', 34.90, 'img/mangas/one_piece_vol_02.jpg', 1, 1),
@@ -159,7 +154,7 @@ INSERT INTO PRODUTO (nome, preco, url_imagem, id_categoria, id_fornecedor) VALUE
 ('Caneca Star Wars Saga', 49.90, 'img/canecas/star_wars.jpg', 5, 6),
 ('Caneca Banguela (Como Treinar o Seu Dragão)', 52.00, 'img/canecas/banguela.jpg', 5, 6);
 
--- Pedidos (20 registros)
+
 INSERT INTO PEDIDO (data_pedido, id_cliente) VALUES 
 ('2026-10-01 10:30:00', 1), ('2026-10-02 11:15:00', 2), ('2026-10-03 14:20:00', 3),
 ('2026-10-04 16:45:00', 4), ('2026-10-05 09:10:00', 5), ('2026-10-06 18:00:00', 6),
@@ -169,7 +164,7 @@ INSERT INTO PEDIDO (data_pedido, id_cliente) VALUES
 ('2026-10-16 10:45:00', 16), ('2026-10-17 15:00:00', 17), ('2026-10-18 18:30:00', 18),
 ('2026-10-19 11:00:00', 1),  ('2026-10-20 14:30:00', 2);
 
--- Endereços de Entrega (20 registros)
+
 INSERT INTO ENDERECO_ENTREGA (id_pedido, rua, cidade, cep) VALUES 
 (1, 'Rua dos Bobos, 0', 'São Paulo', '01000-000'),
 (2, 'Mansão Wayne, 100', 'Gotham City', '02000-000'),
@@ -192,7 +187,7 @@ INSERT INTO ENDERECO_ENTREGA (id_pedido, rua, cidade, cep) VALUES
 (19, 'Rua dos Bobos, 0', 'São Paulo', '01000-000'),
 (20, 'Mansão Wayne, 100', 'Gotham City', '02000-000');
 
--- Itens do Pedido (32 registros)
+
 INSERT INTO ITEM_PEDIDO (id_pedido, id_produto, quantidade, preco_unitario) VALUES 
 (1, 1, 1, 34.90), (1, 20, 1, 250.00),
 (2, 16, 2, 49.90), (2, 26, 1, 79.90),
@@ -210,9 +205,8 @@ INSERT INTO ITEM_PEDIDO (id_pedido, id_produto, quantidade, preco_unitario) VALU
 (20, 8, 1, 34.90), (20, 9, 1, 34.90), (20, 10, 1, 34.90),
 (1, 11, 1, 34.90), (2, 12, 1, 34.90);
 
--- ============================================================
--- 3. VIEWS
--- ============================================================
+
+
 
 CREATE VIEW vw_detalhes_produtos AS
 SELECT p.id_produto, p.nome AS produto, p.preco, p.url_imagem, c.nome AS categoria, f.nome_fantasia AS fornecedor,
@@ -234,9 +228,6 @@ LEFT JOIN PRODUTO pr ON c.id_categoria = pr.id_categoria
 LEFT JOIN ITEM_PEDIDO ip ON pr.id_produto = ip.id_produto
 GROUP BY c.id_categoria, c.nome;
 
--- ============================================================
--- 4. CONSULTAS OPERACIONAIS
--- ============================================================
 
 SELECT * FROM PRODUTO WHERE preco BETWEEN 40.00 AND 200.00 AND (id_categoria = 2 OR id_categoria = 4);
 SELECT id_produto, nome, preco FROM PRODUTO WHERE nome LIKE '%One Piece%' OR nome LIKE '%Gojo%';
@@ -247,9 +238,8 @@ SELECT c.id_cliente, c.nome, c.email FROM CLIENTE c LEFT JOIN PEDIDO p ON c.id_c
 SELECT c.nome AS categoria, COUNT(p.id_produto) AS total_produtos, AVG(p.preco) AS preco_medio FROM PRODUTO p INNER JOIN CATEGORIA c ON p.id_categoria = c.id_categoria GROUP BY c.id_categoria, c.nome HAVING AVG(p.preco) > 50.00;
 SELECT nome, preco, CASE WHEN preco < 50.00 THEN 'Econômico' WHEN preco BETWEEN 50.00 AND 150.00 THEN 'Intermediário' ELSE 'Colecionável Premium' END AS faixa_categoria FROM PRODUTO;
 
--- ============================================================
+
 -- 5. CONSULTAS GERENCIAIS
--- ============================================================
 
 SELECT c.nome, COUNT(p.id_pedido) AS total_pedidos FROM CLIENTE c INNER JOIN PEDIDO p ON c.id_cliente = p.id_cliente GROUP BY c.id_cliente, c.nome ORDER BY total_pedidos DESC LIMIT 5;
 SELECT c.nome AS categoria, SUM(ip.quantidade * ip.preco_unitario) AS faturamento_total FROM ITEM_PEDIDO ip INNER JOIN PRODUTO pr ON ip.id_produto = pr.id_produto INNER JOIN CATEGORIA c ON pr.id_categoria = c.id_categoria GROUP BY c.id_categoria, c.nome;
@@ -261,9 +251,9 @@ SELECT COUNT(DISTINCT id_pedido) AS total_pedidos_realizados, SUM(quantidade * p
 SELECT cat.nome AS categoria, SUM(ip.quantidade * ip.preco_unitario) AS faturamento FROM ITEM_PEDIDO ip INNER JOIN PRODUTO pr ON ip.id_produto = pr.id_produto INNER JOIN CATEGORIA cat ON pr.id_categoria = cat.id_categoria GROUP BY cat.id_categoria, cat.nome HAVING faturamento > (SELECT AVG(sub.total_cat) FROM (SELECT SUM(ip2.quantidade * ip2.preco_unitario) AS total_cat FROM ITEM_PEDIDO ip2 INNER JOIN PRODUTO pr2 ON ip2.id_produto = pr2.id_produto GROUP BY pr2.id_categoria) sub);
 SELECT * FROM vw_detalhes_produtos WHERE faixa_preco = 'Colecionável Premium';
 
--- ============================================================
+
 -- 6. ÍNDICES
--- ============================================================
+
 
 CREATE INDEX idx_produto_nome ON PRODUTO(nome);
 CREATE INDEX idx_produto_preco ON PRODUTO(preco);
@@ -272,9 +262,8 @@ CREATE INDEX idx_pedido_data ON PEDIDO(data_pedido);
 
 SHOW INDEX FROM PRODUTO;
 
--- ============================================================
+
 -- 7. PROCEDURE
--- ============================================================
 
 DELIMITER //
 CREATE PROCEDURE sp_relatorio_vendas_cliente(IN p_id_cliente INT)
@@ -291,9 +280,9 @@ DELIMITER ;
 
 CALL sp_relatorio_vendas_cliente(1);
 
--- ============================================================
+
 -- 8. FUNCTION
--- ============================================================
+
 
 DELIMITER //
 CREATE FUNCTION fn_calcular_desconto(p_valor DECIMAL(10,2), p_percentual DECIMAL(5,2))
@@ -306,9 +295,9 @@ DELIMITER ;
 
 SELECT nome, preco, fn_calcular_desconto(preco, 10.00) AS preco_com_10_desconto FROM PRODUTO WHERE id_categoria = 3;
 
--- ============================================================
+
 -- 9. PERMISSÕES DE USUÁRIOS
--- ============================================================
+
 
 CREATE USER IF NOT EXISTS 'usuario_consulta'@'localhost' IDENTIFIED BY 'Senha123!';
 CREATE USER IF NOT EXISTS 'usuario_operador'@'localhost' IDENTIFIED BY 'Senha123!';
