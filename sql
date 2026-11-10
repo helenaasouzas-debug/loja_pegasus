@@ -2,15 +2,14 @@
 -- TRABALHO FINAL - BANCO DE DADOS RELACIONAL: LOJA PEGASUS
 -- ============================================================
 
--- ============================================================
--- 1. CRIAÇÃO E SELEÇÃO DO BANCO DE DADOS
--- ============================================================
-
-CREATE DATABASE IF NOT EXISTS loja_pegasus;
+DROP DATABASE IF EXISTS loja_pegasus;
+CREATE DATABASE loja_pegasus;
 USE loja_pegasus;
 
+SET FOREIGN_KEY_CHECKS = 0;
+
 -- ============================================================
--- 2. ESTRUTURA FÍSICA (TABELAS COM PK, FK, UNIQUE E NOT NULL)
+-- 1. ESTRUTURA FÍSICA (TABELAS)
 -- ============================================================
 
 CREATE TABLE CATEGORIA (
@@ -49,7 +48,6 @@ CREATE TABLE PEDIDO (
     FOREIGN KEY (id_cliente) REFERENCES CLIENTE(id_cliente)
 );
 
--- Entidade Fraca (Relacionamento 1:1 com PEDIDO)
 CREATE TABLE ENDERECO_ENTREGA (
     id_endereco INT PRIMARY KEY AUTO_INCREMENT,
     id_pedido INT NOT NULL UNIQUE,
@@ -59,7 +57,6 @@ CREATE TABLE ENDERECO_ENTREGA (
     FOREIGN KEY (id_pedido) REFERENCES PEDIDO(id_pedido)
 );
 
--- Entidade Associativa (Relacionamento N:N entre PEDIDO e PRODUTO)
 CREATE TABLE ITEM_PEDIDO (
     id_pedido INT NOT NULL,
     id_produto INT NOT NULL,
@@ -70,17 +67,19 @@ CREATE TABLE ITEM_PEDIDO (
     FOREIGN KEY (id_produto) REFERENCES PRODUTO(id_produto)
 );
 
+SET FOREIGN_KEY_CHECKS = 1;
+
 -- ============================================================
--- 3. CARGA INICIAL DE DADOS (POPULANDO O BANCO)
+-- 2. CARGA INICIAL DE DADOS (INSERTS)
 -- ============================================================
 
--- 3.1 Categoria (15 registros)
+-- Categorias (15 registros)
 INSERT INTO CATEGORIA (nome) VALUES 
 ('Mangás'), ('HQs & Quadrinhos'), ('Action Figures'), ('Camisetas'), ('Canecas'),
 ('Colecionáveis Premium'), ('Posteres & Quadros'), ('Jogos de Tabuleiro'), ('Card Games'), ('Chaveiros'),
 ('Pelúcias'), ('Acessórios Geek'), ('Estátuas'), ('Funko Pop'), ('Light Novels');
 
--- 3.2 Fornecedor (15 registros)
+-- Fornecedores (15 registros)
 INSERT INTO FORNECEDOR (nome_fantasia, cnpj) VALUES 
 ('Panini Comics Brasil', '11.111.111/0001-11'),
 ('Editora JBC', '22.222.222/0001-22'),
@@ -98,7 +97,7 @@ INSERT INTO FORNECEDOR (nome_fantasia, cnpj) VALUES
 ('Hasbro Brasil Colecionáveis', '15.151.515/0001-15'),
 ('McFarlane Toys Brasil', '16.161.616/0001-16');
 
--- 3.3 Cliente (20 registros - Clientes 19 e 20 sem pedidos para testes de auditoria)
+-- Clientes (20 registros)
 INSERT INTO CLIENTE (nome, email, cpf) VALUES 
 ('Peter Parker', 'peter@dailybugle.com', '111.111.111-11'),
 ('Bruce Wayne', 'bruce@wayne.com', '222.222.222-22'),
@@ -121,7 +120,7 @@ INSERT INTO CLIENTE (nome, email, cpf) VALUES
 ('Cliente Sem Compras 1', 'semcompras1@email.com', '999.999.999-91'),
 ('Cliente Sem Compras 2', 'semcompras2@email.com', '999.999.999-92');
 
--- 3.4 Produto (36 registros da Loja Pegasus com caminhos de imagem)
+-- Produtos (36 registros da Loja Pegasus)
 INSERT INTO PRODUTO (nome, preco, url_imagem, id_categoria, id_fornecedor) VALUES 
 ('Mangá One Piece Volume 01', 34.90, 'img/mangas/one_piece_vol_01.jpg', 1, 1),
 ('Mangá One Piece Volume 02', 34.90, 'img/mangas/one_piece_vol_02.jpg', 1, 1),
@@ -160,7 +159,7 @@ INSERT INTO PRODUTO (nome, preco, url_imagem, id_categoria, id_fornecedor) VALUE
 ('Caneca Star Wars Saga', 49.90, 'img/canecas/star_wars.jpg', 5, 6),
 ('Caneca Banguela (Como Treinar o Seu Dragão)', 52.00, 'img/canecas/banguela.jpg', 5, 6);
 
--- 3.5 Pedido (20 registros)
+-- Pedidos (20 registros)
 INSERT INTO PEDIDO (data_pedido, id_cliente) VALUES 
 ('2026-10-01 10:30:00', 1), ('2026-10-02 11:15:00', 2), ('2026-10-03 14:20:00', 3),
 ('2026-10-04 16:45:00', 4), ('2026-10-05 09:10:00', 5), ('2026-10-06 18:00:00', 6),
@@ -170,7 +169,7 @@ INSERT INTO PEDIDO (data_pedido, id_cliente) VALUES
 ('2026-10-16 10:45:00', 16), ('2026-10-17 15:00:00', 17), ('2026-10-18 18:30:00', 18),
 ('2026-10-19 11:00:00', 1),  ('2026-10-20 14:30:00', 2);
 
--- 3.6 Endereço de Entrega (20 registros)
+-- Endereços de Entrega (20 registros)
 INSERT INTO ENDERECO_ENTREGA (id_pedido, rua, cidade, cep) VALUES 
 (1, 'Rua dos Bobos, 0', 'São Paulo', '01000-000'),
 (2, 'Mansão Wayne, 100', 'Gotham City', '02000-000'),
@@ -193,7 +192,7 @@ INSERT INTO ENDERECO_ENTREGA (id_pedido, rua, cidade, cep) VALUES
 (19, 'Rua dos Bobos, 0', 'São Paulo', '01000-000'),
 (20, 'Mansão Wayne, 100', 'Gotham City', '02000-000');
 
--- 3.7 Item Pedido (32 registros - Produtos 35 e 36 sem vendas para testes)
+-- Itens do Pedido (32 registros)
 INSERT INTO ITEM_PEDIDO (id_pedido, id_produto, quantidade, preco_unitario) VALUES 
 (1, 1, 1, 34.90), (1, 20, 1, 250.00),
 (2, 16, 2, 49.90), (2, 26, 1, 79.90),
@@ -212,7 +211,7 @@ INSERT INTO ITEM_PEDIDO (id_pedido, id_produto, quantidade, preco_unitario) VALU
 (1, 11, 1, 34.90), (2, 12, 1, 34.90);
 
 -- ============================================================
--- 4. VIEWS (PARTE 7)
+-- 3. VIEWS
 -- ============================================================
 
 CREATE VIEW vw_detalhes_produtos AS
@@ -236,129 +235,34 @@ LEFT JOIN ITEM_PEDIDO ip ON pr.id_produto = ip.id_produto
 GROUP BY c.id_categoria, c.nome;
 
 -- ============================================================
--- 5. CONSULTAS OPERACIONAIS (PARTE 5 - 8 CONSULTAS)
+-- 4. CONSULTAS OPERACIONAIS
 -- ============================================================
 
--- Consulta 1: Pesquisa com Filtros
-SELECT * FROM PRODUTO 
-WHERE preco BETWEEN 40.00 AND 200.00 AND (id_categoria = 2 OR id_categoria = 4);
-
--- Consulta 2: Pesquisa Textual
-SELECT id_produto, nome, preco FROM PRODUTO 
-WHERE nome LIKE '%One Piece%' OR nome LIKE '%Gojo%';
-
--- Consulta 3: Ordenação
-SELECT id_produto, nome, id_categoria, preco FROM PRODUTO 
-ORDER BY id_categoria ASC, preco DESC;
-
--- Consulta 4: Relacionamento Simples (INNER JOIN 2 tabelas)
-SELECT p.nome AS produto, p.preco, c.nome AS categoria 
-FROM PRODUTO p
-INNER JOIN CATEGORIA c ON p.id_categoria = c.id_categoria;
-
--- Consulta 5: Relacionamento Intermediário (INNER JOIN 3 tabelas)
-SELECT p.nome AS produto, c.nome AS categoria, f.nome_fantasia AS fornecedor
-FROM PRODUTO p
-INNER JOIN CATEGORIA c ON p.id_categoria = c.id_categoria
-INNER JOIN FORNECEDOR f ON p.id_fornecedor = f.id_fornecedor;
-
--- Consulta 6: Registros sem Relacionamento (LEFT JOIN)
-SELECT c.id_cliente, c.nome, c.email 
-FROM CLIENTE c
-LEFT JOIN PEDIDO p ON c.id_cliente = p.id_cliente
-WHERE p.id_pedido IS NULL;
-
--- Consulta 7: Estatísticas por Grupo
-SELECT c.nome AS categoria, COUNT(p.id_produto) AS total_produtos, AVG(p.preco) AS preco_medio
-FROM PRODUTO p
-INNER JOIN CATEGORIA c ON p.id_categoria = c.id_categoria
-GROUP BY c.id_categoria, c.nome
-HAVING AVG(p.preco) > 50.00;
-
--- Consulta 8: Classificação de Dados (CASE)
-SELECT nome, preco,
-    CASE 
-        WHEN preco < 50.00 THEN 'Econômico'
-        WHEN preco BETWEEN 50.00 AND 150.00 THEN 'Intermediário'
-        ELSE 'Colecionável Premium'
-    END AS faixa_categoria
-FROM PRODUTO;
+SELECT * FROM PRODUTO WHERE preco BETWEEN 40.00 AND 200.00 AND (id_categoria = 2 OR id_categoria = 4);
+SELECT id_produto, nome, preco FROM PRODUTO WHERE nome LIKE '%One Piece%' OR nome LIKE '%Gojo%';
+SELECT id_produto, nome, id_categoria, preco FROM PRODUTO ORDER BY id_categoria ASC, preco DESC;
+SELECT p.nome AS produto, p.preco, c.nome AS categoria FROM PRODUTO p INNER JOIN CATEGORIA c ON p.id_categoria = c.id_categoria;
+SELECT p.nome AS produto, c.nome AS categoria, f.nome_fantasia AS fornecedor FROM PRODUTO p INNER JOIN CATEGORIA c ON p.id_categoria = c.id_categoria INNER JOIN FORNECEDOR f ON p.id_fornecedor = f.id_fornecedor;
+SELECT c.id_cliente, c.nome, c.email FROM CLIENTE c LEFT JOIN PEDIDO p ON c.id_cliente = p.id_cliente WHERE p.id_pedido IS NULL;
+SELECT c.nome AS categoria, COUNT(p.id_produto) AS total_produtos, AVG(p.preco) AS preco_medio FROM PRODUTO p INNER JOIN CATEGORIA c ON p.id_categoria = c.id_categoria GROUP BY c.id_categoria, c.nome HAVING AVG(p.preco) > 50.00;
+SELECT nome, preco, CASE WHEN preco < 50.00 THEN 'Econômico' WHEN preco BETWEEN 50.00 AND 150.00 THEN 'Intermediário' ELSE 'Colecionável Premium' END AS faixa_categoria FROM PRODUTO;
 
 -- ============================================================
--- 6. CONSULTAS GERENCIAIS (PARTE 6 - 9 CONSULTAS)
+-- 5. CONSULTAS GERENCIAIS
 -- ============================================================
 
--- Consulta 1: Ranking Principal
-SELECT c.nome, COUNT(p.id_pedido) AS total_pedidos
-FROM CLIENTE c
-INNER JOIN PEDIDO p ON c.id_cliente = p.id_cliente
-GROUP BY c.id_cliente, c.nome
-ORDER BY total_pedidos DESC
-LIMIT 5;
-
--- Consulta 2: Indicador Financeiro
-SELECT c.nome AS categoria, SUM(ip.quantidade * ip.preco_unitario) AS faturamento_total
-FROM ITEM_PEDIDO ip
-INNER JOIN PRODUTO pr ON ip.id_produto = pr.id_produto
-INNER JOIN CATEGORIA c ON pr.id_categoria = c.id_categoria
-GROUP BY c.id_categoria, c.nome;
-
--- Consulta 3: Registros Acima da Média
-SELECT nome, preco FROM PRODUTO
-WHERE preco > (SELECT AVG(preco) FROM PRODUTO)
-ORDER BY preco DESC;
-
--- Consulta 4: Relatório Integrado (4 Tabelas)
-SELECT c.nome AS cliente, p.id_pedido, p.data_pedido, pr.nome AS produto, ip.quantidade, ip.preco_unitario
-FROM CLIENTE c
-INNER JOIN PEDIDO p ON c.id_cliente = p.id_cliente
-INNER JOIN ITEM_PEDIDO ip ON p.id_pedido = ip.id_pedido
-INNER JOIN PRODUTO pr ON ip.id_produto = pr.id_produto;
-
--- Consulta 5: Relatório Integrado Avançado (5 Tabelas)
-SELECT c.nome AS cliente, p.id_pedido, cat.nome AS categoria, pr.nome AS produto, (ip.quantidade * ip.preco_unitario) AS total_item
-FROM CLIENTE c
-INNER JOIN PEDIDO p ON c.id_cliente = p.id_cliente
-INNER JOIN ITEM_PEDIDO ip ON p.id_pedido = ip.id_pedido
-INNER JOIN PRODUTO pr ON ip.id_produto = pr.id_produto
-INNER JOIN CATEGORIA cat ON pr.id_categoria = cat.id_categoria
-ORDER BY p.data_pedido DESC;
-
--- Consulta 6: Identificação de Problemas (Produtos sem venda)
-SELECT pr.id_produto, pr.nome, pr.preco 
-FROM PRODUTO pr
-LEFT JOIN ITEM_PEDIDO ip ON pr.id_produto = ip.id_produto
-WHERE ip.id_produto IS NULL;
-
--- Consulta 7: Dashboard Executivo
-SELECT 
-    COUNT(DISTINCT id_pedido) AS total_pedidos_realizados,
-    SUM(quantidade * preco_unitario) AS faturamento_geral,
-    AVG(quantidade * preco_unitario) AS ticket_medio_item,
-    MAX(preco_unitario) AS item_mais_caro_vendido,
-    MIN(preco_unitario) AS item_mais_barato_vendido
-FROM ITEM_PEDIDO;
-
--- Consulta 8: Consulta Complexa
-SELECT cat.nome AS categoria, SUM(ip.quantidade * ip.preco_unitario) AS faturamento
-FROM ITEM_PEDIDO ip
-INNER JOIN PRODUTO pr ON ip.id_produto = pr.id_produto
-INNER JOIN CATEGORIA cat ON pr.id_categoria = cat.id_categoria
-GROUP BY cat.id_categoria, cat.nome
-HAVING faturamento > (
-    SELECT AVG(sub.total_cat) FROM (
-        SELECT SUM(ip2.quantidade * ip2.preco_unitario) AS total_cat
-        FROM ITEM_PEDIDO ip2
-        INNER JOIN PRODUTO pr2 ON ip2.id_produto = pr2.id_produto
-        GROUP BY pr2.id_categoria
-    ) sub
-);
-
--- Consulta 9: Consulta na View
+SELECT c.nome, COUNT(p.id_pedido) AS total_pedidos FROM CLIENTE c INNER JOIN PEDIDO p ON c.id_cliente = p.id_cliente GROUP BY c.id_cliente, c.nome ORDER BY total_pedidos DESC LIMIT 5;
+SELECT c.nome AS categoria, SUM(ip.quantidade * ip.preco_unitario) AS faturamento_total FROM ITEM_PEDIDO ip INNER JOIN PRODUTO pr ON ip.id_produto = pr.id_produto INNER JOIN CATEGORIA c ON pr.id_categoria = c.id_categoria GROUP BY c.id_categoria, c.nome;
+SELECT nome, preco FROM PRODUTO WHERE preco > (SELECT AVG(preco) FROM PRODUTO) ORDER BY preco DESC;
+SELECT c.nome AS cliente, p.id_pedido, p.data_pedido, pr.nome AS produto, ip.quantidade, ip.preco_unitario FROM CLIENTE c INNER JOIN PEDIDO p ON c.id_cliente = p.id_cliente INNER JOIN ITEM_PEDIDO ip ON p.id_pedido = ip.id_pedido INNER JOIN PRODUTO pr ON ip.id_produto = pr.id_produto;
+SELECT c.nome AS cliente, p.id_pedido, cat.nome AS categoria, pr.nome AS produto, (ip.quantidade * ip.preco_unitario) AS total_item FROM CLIENTE c INNER JOIN PEDIDO p ON c.id_cliente = p.id_cliente INNER JOIN ITEM_PEDIDO ip ON p.id_pedido = ip.id_pedido INNER JOIN PRODUTO pr ON ip.id_produto = pr.id_produto INNER JOIN CATEGORIA cat ON pr.id_categoria = cat.id_categoria ORDER BY p.data_pedido DESC;
+SELECT pr.id_produto, pr.nome, pr.preco FROM PRODUTO pr LEFT JOIN ITEM_PEDIDO ip ON pr.id_produto = ip.id_produto WHERE ip.id_produto IS NULL;
+SELECT COUNT(DISTINCT id_pedido) AS total_pedidos_realizados, SUM(quantidade * preco_unitario) AS faturamento_geral, AVG(quantidade * preco_unitario) AS ticket_medio_item, MAX(preco_unitario) AS item_mais_caro_vendido, MIN(preco_unitario) AS item_mais_barato_vendido FROM ITEM_PEDIDO;
+SELECT cat.nome AS categoria, SUM(ip.quantidade * ip.preco_unitario) AS faturamento FROM ITEM_PEDIDO ip INNER JOIN PRODUTO pr ON ip.id_produto = pr.id_produto INNER JOIN CATEGORIA cat ON pr.id_categoria = cat.id_categoria GROUP BY cat.id_categoria, cat.nome HAVING faturamento > (SELECT AVG(sub.total_cat) FROM (SELECT SUM(ip2.quantidade * ip2.preco_unitario) AS total_cat FROM ITEM_PEDIDO ip2 INNER JOIN PRODUTO pr2 ON ip2.id_produto = pr2.id_produto GROUP BY pr2.id_categoria) sub);
 SELECT * FROM vw_detalhes_produtos WHERE faixa_preco = 'Colecionável Premium';
 
 -- ============================================================
--- 7. ÍNDICES (PARTE 8)
+-- 6. ÍNDICES
 -- ============================================================
 
 CREATE INDEX idx_produto_nome ON PRODUTO(nome);
@@ -369,7 +273,7 @@ CREATE INDEX idx_pedido_data ON PEDIDO(data_pedido);
 SHOW INDEX FROM PRODUTO;
 
 -- ============================================================
--- 8. PROCEDURE (PARTE 9)
+-- 7. PROCEDURE
 -- ============================================================
 
 DELIMITER //
@@ -388,7 +292,7 @@ DELIMITER ;
 CALL sp_relatorio_vendas_cliente(1);
 
 -- ============================================================
--- 9. FUNCTION (PARTE 10)
+-- 8. FUNCTION
 -- ============================================================
 
 DELIMITER //
@@ -400,11 +304,10 @@ BEGIN
 END //
 DELIMITER ;
 
-SELECT nome, preco, fn_calcular_desconto(preco, 10.00) AS preco_com_10_desconto 
-FROM PRODUTO WHERE id_categoria = 3;
+SELECT nome, preco, fn_calcular_desconto(preco, 10.00) AS preco_com_10_desconto FROM PRODUTO WHERE id_categoria = 3;
 
 -- ============================================================
--- 10. SEGURANÇA E CONTROLE DE ACESSO (PARTE 11 E 12)
+-- 9. PERMISSÕES DE USUÁRIOS
 -- ============================================================
 
 CREATE USER IF NOT EXISTS 'usuario_consulta'@'localhost' IDENTIFIED BY 'Senha123!';
