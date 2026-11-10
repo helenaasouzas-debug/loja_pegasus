@@ -2,7 +2,10 @@
 -- TRABALHO FINAL - BANCO DE DADOS RELACIONAL: LOJA PEGASUS
 -- ============================================================
 
+-- ============================================================
 -- 1. CRIAÇÃO E SELEÇÃO DO BANCO DE DADOS
+-- ============================================================
+
 CREATE DATABASE IF NOT EXISTS loja_pegasus;
 USE loja_pegasus;
 
